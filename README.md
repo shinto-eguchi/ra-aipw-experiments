@@ -1,83 +1,100 @@
 # RA-AIPW experiments
 
-This is the **no-folder layout** for direct GitHub upload. All files are placed in the repository root.
+This repository contains the final reproducibility code for the RA-AIPW numerical experiments in the manuscript.
 
-This repository contains reproducibility materials for the numerical experiments in the paper
+The repository is intentionally organized in a **no-folder layout**, so that all files can be uploaded directly through the GitHub web interface.
 
-**Residual-allocated augmented inverse-probability weighting under weak overlap**
+## Main scripts
 
-The code is organized around two parts of the manuscript:
-
-1. the synthetic weak-overlap experiment, including additional diagnostics; and  
-2. the NHEFS-based semi-synthetic experiment.
-
-## Repository structure
-
-```text
-README.md
-run_all.R
-R/
-  ra_aipw_functions.R
-scripts/
-  00_prepare_nhefs_covariates.R
-  01_synthetic_weak_overlap_experiment.R
-  02_synthetic_weak_overlap_diagnostics.R
-  03_nhefs_semisynthetic_experiment.R
-
-
-data/
-  README.md
-sessionInfo.txt
-```
-
-## Reproducing the results
-
-From the top-level directory, run
-
-```r
-source("run_all.R")
-```
-
-This creates the `` and `` directories if needed and runs the synthetic and NHEFS-based scripts in order.
-
-The synthetic scripts are self-contained. The NHEFS-based script expects a prepared covariate file; see `DATA_README.md` and `scripts/00_prepare_nhefs_covariates.R`.
-
-## Manuscript outputs
-
-The scripts are intended to reproduce the following outputs.
-
-| Manuscript item | Script | Output |
-|---|---|---|
-| Synthetic weak-overlap experiment | `scripts/01_synthetic_weak_overlap_experiment.R` | `synthetic_weak_overlap_summary.csv` |
-| Additional diagnostics, Supplementary Figs. S1--S3 | `scripts/02_synthetic_weak_overlap_diagnostics.R` | `supp_synthetic_deleted_mass.png`, `supp_synthetic_tail_q99.png`, `supp_synthetic_aipw_distance.png` |
-| NHEFS-based semi-synthetic experiment, Section 5.2 | `scripts/03_nhefs_semisynthetic_experiment.R` | `nhefs_semisynthetic_summary.csv`, `fig_rmse_vs_kappa_color.png`, `fig_tail_q99_vs_kappa_color.png` |
-
-## Data
-
-The synthetic weak-overlap experiment does not require external data.
-
-The NHEFS-based semi-synthetic experiment uses the covariate distribution from the NHANES I Epidemiologic Followup Study (NHEFS). No individual-level data are distributed in this repository. Place the prepared covariate file at
-
-```text
-nhefs_covariates.csv
-```
-
-or set the environment variable
-
-```text
-NHEFS_CSV=/path/to/nhefs_covariates.csv
-```
-
-The file should contain one row per subject and columns containing the covariates used to construct the semi-synthetic response and outcome mechanisms. Numeric and factor covariates are handled by `scripts/00_prepare_nhefs_covariates.R`.
+| File | Purpose |
+|---|---|
+| `01_synthetic_weak_overlap_experiment.R` | Reproduces the synthetic weak-overlap experiment and the additional diagnostics reported in the Supplementary Material. |
+| `02_synthetic_weak_overlap_diagnostics.R` | Convenience wrapper for checking or regenerating the synthetic diagnostic outputs. |
+| `03_nhefs_semisynthetic_experiment.R` | Reproduces the NHEFS-based semi-synthetic experiment in Section 5.2. |
+| `00_prepare_nhefs_covariates.R` | Documents the NHEFS data source. The final NHEFS script loads `causaldata::nhefs_complete` directly. |
+| `run_all.R` | Runs the synthetic and NHEFS scripts in sequence. |
 
 ## Software
 
-The scripts use base R and recommended packages only (`stats`, `utils`, `graphics`, and `splines`). Package and R-version information are saved to `sessionInfo.txt` when `run_all.R` is executed.
+The scripts use R and the following packages:
 
-## Random seeds
+```r
+parallel
+dplyr
+tidyr
+ggplot2
+readr
+tibble
+stringr
+causaldata
+```
 
-All simulation scripts use fixed random seeds. The defaults are chosen for reproducibility rather than speed. For quick checks, reduce `n_reps` inside the corresponding script.
+Missing packages are installed automatically from CRAN.
 
-## Notes for revision
+## Running the code
 
-The current files provide a clean reproducibility scaffold. If the exact Monte Carlo code used to produce the submitted numerical values is available separately, replace the model-specific blocks in `scripts/01_synthetic_weak_overlap_experiment.R` and `scripts/03_nhefs_semisynthetic_experiment.R` while keeping the same output filenames.
+For a short smoke test:
+
+```r
+Sys.setenv(RA_AIPW_QUICK_TEST = "TRUE")
+source("run_all.R")
+```
+
+For the full submitted Monte Carlo design:
+
+```r
+Sys.unsetenv("RA_AIPW_QUICK_TEST")
+source("run_all.R")
+```
+
+The full run uses 500 Monte Carlo repetitions in both experiments and may take substantial time.
+
+## Synthetic weak-overlap outputs
+
+The synthetic script produces, among other files,
+
+```text
+table_finite_L2grid.csv
+table_efficiency_L2grid.csv
+fig_rmse_coarse_L2grid.png
+fig_tail_q99_coarse_L2grid.png
+fig_delta_q95_L2grid.png
+fig_L2grid_train_mass.png
+adaptive_TS_L2grid_detail.csv
+adaptive_TS_L2grid_summary.csv
+```
+
+The figures and tables correspond to the additional diagnostics for the synthetic weak-overlap experiment.
+
+## NHEFS-based semi-synthetic outputs
+
+The NHEFS script loads the public `nhefs_complete` data object from the `causaldata` R package and produces
+
+```text
+raw_results.csv
+raw_results_checkpoint.csv
+summary_results.csv
+summary_key_results.csv
+best_by_kappa.csv
+fig_true_propensity_overlap.png
+fig_rmse_vs_kappa_color.png
+fig_tail_q99_vs_kappa_color.png
+fig_coverage_vs_kappa_color.png
+fig_active_frac_vs_kappa_color.png
+fig_delta_q95_vs_kappa_color.png
+```
+
+No individual-level NHEFS data file is distributed in this repository.
+
+## Precomputed outputs
+
+The repository may also include selected CSV and PNG outputs from the submitted runs, so that readers can inspect the numerical results without rerunning the full simulations.
+
+## Code availability statement
+
+```latex
+\paragraph{Code availability.}
+The code used to reproduce the synthetic weak-overlap diagnostics and the
+NHEFS-based semi-synthetic experiment is available at
+\url{https://github.com/shinto-eguchi/ra-aipw-experiments}.
+```
